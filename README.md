@@ -1,5 +1,5 @@
 # dotfiles
-A collection of files related to my dev setup
+A collection of files related to my dev setup on WSL 2 Ubuntu 20.04
 
 ## Requirements
 1. neovim
