@@ -13,10 +13,7 @@ export PATH="$PATH:$HOME/.rvm/bin"
 # My aliases
 alias ~="cd ~"
 alias bat="batcat"
-alias bathelp='batcat --plain --language=help'
-help() {
-    "$@" --help 2>&1 | bathelp
-}
+alias bathelp='batcat --help'
 alias crun="cargo run"
 alias cnew="cargo new"
 alias grun="go run ."
@@ -27,7 +24,7 @@ alias gs="git status"
 alias gc="git commit -m"
 alias gp="git push -u origin"
 alias gotocode="cd ~/../../mnt/i/Programming"
-alias gotoconf="cd ~/.config/nvim/lua"
+alias gotoviconf="cd ~/.config/nvim/lua"
 alias ls='lsd'
 alias l='ls -l'
 alias la='ls -a'
