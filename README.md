@@ -9,6 +9,7 @@ My dev setup on Fedora: Neovim, tmux and zsh, running in Ghostty.
 | `nvim/` | `~/.config/nvim` |
 | `.tmux.conf` | `~/.tmux.conf` |
 | `.zshrc` | `~/.zshrc` |
+| `.tool-versions` | `~/.tool-versions` |
 
 ## Neovim
 
@@ -32,3 +33,7 @@ Plugins go through [tpm](https://github.com/tmux-plugins/tpm). Install it, then 
 ## zsh
 
 Oh My Zsh with the `robbyrussell` theme. Tools it sets up: asdf, pnpm, bun, sdkman, opam and the TLA+ tools.
+
+## asdf
+
+`.tool-versions` pins the global language and tool versions (Elixir, Erlang, Node.js, Python, Go, Ruby, Zig and others). Add each plugin with `asdf plugin add <name>`, then run `asdf install` from your home directory.
