@@ -14,6 +14,8 @@ My dev setup on Fedora: Neovim, tmux and zsh, running in Ghostty.
 
 Neovim 0.12 with [lazy.nvim](https://github.com/folke/lazy.nvim). Plugins install on first start, or run `:Lazy sync`.
 
+![Neovim start screen](images/nvim-dashboard.png)
+
 - `lua/core/` has options, keymaps and the LSP setup
 - `lua/plugins/` has one file per area (LSP, completion, linting, formatting, telescope, treesitter, UI, git)
 - `lua/tlaplus/` is TLA+ support: snippets, completion, `.cfg` checks and highlighting, go to definition, `:TlaCheck` output with TLA+ symbols, and `:TlaPdf` / `:TlaTex`
