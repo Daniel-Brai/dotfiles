@@ -429,6 +429,32 @@ function M.check_style(buf)
 		end
 	end
 	local diags = {}
+	-- Header units (`import <print>;`) are legal C++20, but Clang calls them experimental, CMake
+	-- can't build them and nothing here builds them for clangd. Point to what works instead.
+	for i, l in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
+		local sys = l:match("^%s*export%s+import%s+<([^>]+)>%s*;") or l:match("^%s*import%s+<([^>]+)>%s*;")
+		local usr = l:match('^%s*export%s+import%s+"([^"]+)"%s*;') or l:match('^%s*import%s+"([^"]+)"%s*;')
+		if sys then
+			local std_header = STD_HEADERS[sys] or MACRO_HEADERS[sys]
+			table.insert(diags, {
+				lnum = i - 1,
+				col = 0,
+				severity = vim.diagnostic.severity.HINT,
+				source = "modules",
+				message = std_header
+						and ("Header units aren't supported here: use `import std;` (same names, no header) or `#include <%s>`"):format(sys)
+					or ("Header units aren't supported here: use `#include <%s>`"):format(sys),
+			})
+		elseif usr then
+			table.insert(diags, {
+				lnum = i - 1,
+				col = 0,
+				severity = vim.diagnostic.severity.HINT,
+				source = "modules",
+				message = ('Header units aren\'t supported here: use `#include "%s"`, or turn it into a module (`export module ...;`)'):format(usr),
+			})
+		end
+	end
 	if std_import then
 		for _, inc in ipairs(includes) do
 			table.insert(diags, {
