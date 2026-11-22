@@ -26,6 +26,8 @@ return {
 		local cmp = require("cmp")
 		local luasnip = require("luasnip")
 		luasnip.config.setup({})
+		-- Own snippets: snippets/<filetype>.lua (C, C++, CMake, Make ...)
+		require("luasnip.loaders.from_lua").lazy_load({ paths = { vim.fn.stdpath("config") .. "/snippets" } })
 
 		local kind_icons = {
 			Text = "",

@@ -123,6 +123,14 @@ return {
 						diagnostics,
 						diff,
 						lsp,
+						{
+							function()
+								return require("core.cc").statusline()
+							end,
+							cond = function()
+								return vim.bo.filetype == "c" or vim.bo.filetype == "cpp"
+							end,
+						},
 						{ "encoding", cond = hide_in_width },
 						{ "filetype", cond = hide_in_width },
 					},

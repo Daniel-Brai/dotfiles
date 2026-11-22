@@ -173,6 +173,7 @@ return {
 		-- end, ensure_installed)
 		vim.list_extend(ensure_installed, {
 			"stylua", -- Used to format Lua code
+			"gersemi", -- CMake formatter
 		})
 		require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 

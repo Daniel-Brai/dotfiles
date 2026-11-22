@@ -24,5 +24,10 @@ require("lazy").setup({
 	require("plugins.lsp"),
 	require("plugins.lsp-utils"),
 	require("plugins.tla"),
+	require("plugins.dap"),
 	require("plugins.misc"),
 })
+
+-- C/C++: :CNew, :CBuild/:CRun/:CTest, :CGdb, :CAsm ... (keymaps attach in C, C++ and CMake buffers)
+require("core.cc_build")
+require("core.cc_new")

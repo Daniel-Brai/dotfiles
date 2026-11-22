@@ -216,8 +216,10 @@ return {
 			spec = {
 				{ "<leader>s", group = "[S]earch" },
 				{ "<leader>t", group = "[T]oggle" },
+				{ "<leader>c", group = "[C]/C++" },
 				{ "<leader>g", group = "[G]it (zsh aliases)" },
 				{ "<leader>h", group = "Git [H]unk", mode = { "n", "v" } },
+				{ "<leader>d", group = "[D]ebug / diagnostics" },
 			},
 		},
 	},

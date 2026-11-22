@@ -20,7 +20,7 @@ return {
 			-- languages here or re-enable it for the disabled ones.
 			-- tla: tlafmt rewrites hand-aligned specs, and auto-save writes while typing,
 			-- so TLA+ only formats on <leader>f
-			local disable_filetypes = { c = true, cpp = true, tla = true }
+			local disable_filetypes = { tla = true }
 			if disable_filetypes[vim.bo[bufnr].filetype] then
 				return nil
 			else
@@ -38,6 +38,7 @@ return {
 			python = { "ruff", "black", "isort" },
 			c = { "clang-format" },
 			cpp = { "clang-format" },
+			cmake = { "gersemi" },
 			yaml = { "yamlfmt" },
 			ruby = { "erb_formatter", "rubocop", "rufo" },
 			heex = { "mix" },
@@ -51,6 +52,13 @@ return {
 			erb_formatter = {
 				command = "bundle",
 				args = { "exec", "erb-format", "--stdin" },
+			},
+			-- Uses the project's .clang-format when there is one, this style otherwise
+			["clang-format"] = {
+				prepend_args = {
+					"--style=file",
+					"--fallback-style={BasedOnStyle: LLVM, IndentWidth: 4, ColumnLimit: 100, AllowShortFunctionsOnASingleLine: Empty, PointerAlignment: Left}",
+				},
 			},
 			mix = {
 				command = "mix",

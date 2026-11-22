@@ -1,0 +1,67 @@
+# Global clangd config (all projects). A project's own .clangd file merges on top of this.
+# No -std here: Neovim (lua/core/cc.lua) picks the C/C++ standard per file from the code
+# and sends it to clangd. Pin one per project with :CStd c++17 (writes a .clangd).
+
+If:
+  PathMatch: .*\.c$
+CompileFlags:
+  Add: [-Wall, -Wextra, -Wpedantic, -Wshadow, -Wconversion, -Wformat=2, -Wnull-dereference, -Wstrict-prototypes, -Wvla]
+
+---
+If:
+  PathMatch: .*\.(cc|cpp|cxx|c\+\+|hh|hpp|hxx|h\+\+|ixx|cppm|tpp|ipp)$
+CompileFlags:
+  Add: [-Wall, -Wextra, -Wpedantic, -Wshadow, -Wconversion, -Wformat=2, -Wnull-dereference, -Wnon-virtual-dtor, -Woverloaded-virtual]
+
+---
+Diagnostics:
+  UnusedIncludes: Strict
+  # Off: with `import std;` clangd wrongly asks for the header of every std name
+  MissingIncludes: None
+  ClangTidy:
+    Add:
+      - bugprone-*
+      - performance-*
+      - modernize-*
+      - readability-*
+      - cppcoreguidelines-*
+      - misc-*
+      - concurrency-*
+      - portability-*
+      - cert-err33-c # unchecked return values (fclose, printf ...)
+      - cert-err34-c # atoi & co. can't report errors
+      - cert-msc50-cpp # std::rand
+      - cert-msc51-cpp # predictable seeds
+    Remove:
+      # Too noisy for everyday and learning code
+      - modernize-use-trailing-return-type
+      - readability-identifier-length
+      - readability-magic-numbers
+      - cppcoreguidelines-avoid-magic-numbers
+      - readability-braces-around-statements
+      - misc-non-private-member-variables-in-classes
+      - cppcoreguidelines-non-private-member-variables-in-classes
+      - misc-include-cleaner # clangd's own unused/missing include checks cover this
+      - bugprone-easily-swappable-parameters
+      - cppcoreguidelines-pro-bounds-pointer-arithmetic
+      - cppcoreguidelines-avoid-c-arrays
+      - modernize-avoid-c-arrays
+      - cppcoreguidelines-avoid-do-while
+      - cppcoreguidelines-owning-memory # needs the GSL owner<T>
+      - cppcoreguidelines-pro-type-vararg # printf in C code
+      - portability-avoid-pragma-once # #pragma once is fine with GCC/Clang/MSVC
+    CheckOptions:
+      # println & co. can throw; keep the check for destructors, moves and noexcept functions
+      bugprone-exception-escape.CheckMain: false
+
+InlayHints:
+  Enabled: true
+  ParameterNames: true
+  DeducedTypes: true
+  Designators: true
+
+Hover:
+  ShowAKA: true
+
+Completion:
+  AllScopes: true
