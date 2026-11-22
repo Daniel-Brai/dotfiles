@@ -213,8 +213,7 @@ function M.hover()
 			"Imports a header as a module (its declarations *and* macros). Legal C++20, but the",
 			"least supported part of modules: Clang calls it experimental and CMake can't build it.",
 			"",
-			"Instead: `import std;` for the standard library (what C++23 and *Professional C++*",
-			"use), or `#include` for anything else.",
+			"Instead: `import std;` for the standard library, or `#include` for anything else.",
 		}
 	else
 		local modules = require("core.cc_modules")
