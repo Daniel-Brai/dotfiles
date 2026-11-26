@@ -399,7 +399,7 @@ end
 function M.run(args)
 	local p = M.project()
 	if not p then
-		return cc.build(true)
+		return cc.build(true, args)
 	end
 	M.build(function()
 		M.pick_target(p, false, function(exe)
@@ -437,9 +437,15 @@ function M.debug_program(cb, on_fail, opts)
 			M.pick_target(p, false, cb, on_fail)
 		end, on_fail)
 	end
-	local cmd, out, build_dir = cc.build_cmd(0, opts)
 	vim.cmd("silent! write")
-	local res = vim.system(cmd, { text = true, cwd = build_dir }):wait()
+	local cmd, out, build_dir, pre = cc.build_cmd(0, opts)
+	local res = { code = 0 }
+	for _, c in ipairs(vim.list_extend(pre, { cmd })) do
+		res = vim.system(c, { text = true, cwd = build_dir }):wait()
+		if res.code ~= 0 then
+			break
+		end
+	end
 	if res.code ~= 0 then
 		local lines = vim.split((res.stdout or "") .. (res.stderr or ""), "\n", { trimempty = true })
 		to_quickfix(lines, vim.fn.expand("%:p:h"), "Build")

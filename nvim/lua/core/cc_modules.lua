@@ -314,12 +314,23 @@ end
 
 --- Arguments for a GCC build of the file `lines` came from: module sources (and implementation
 --- units) in dependency order, before the file itself. Returns {} when it imports nothing.
-function M.gcc_args(lines, file, root)
+--- With `split_std`, std / std.compat stay out of the arguments and come back second as
+--- { { name, src } ... }, so the caller can build them once and link the objects instead.
+function M.gcc_args(lines, file, root, split_std)
 	local names = needed(M.parse(lines))
 	if #names == 0 then
-		return {}
+		return {}, {}
 	end
 	local order = closure(names, root, "gcc")
+	local std_mods = {}
+	if split_std then
+		order = vim.tbl_filter(function(n)
+			if n.is_std then
+				table.insert(std_mods, { name = n.name, src = n.src })
+			end
+			return not n.is_std
+		end, order)
+	end
 	local args, added = { "-fmodules" }, { [file] = true }
 	local function add(src)
 		if added[src] then
@@ -339,7 +350,30 @@ function M.gcc_args(lines, file, root)
 			add(impl)
 		end
 	end
-	return args
+	return args, std_mods
+end
+
+--- Build std / std.compat once per compiler and flag set, instead of on every run.
+--- Each flag set gets its own directory (its gcm.cache/ holds the compiled module interface,
+--- which GCC only accepts with matching flags). Returns that directory, the objects to link,
+--- and the compile commands still needed (empty once they're built and newer than libstdc++).
+function M.gcc_std(std_mods, flags)
+	local version = vim.trim(vim.fn.system({ flags[1], "-dumpfullversion" }))
+	local key = vim.fn.sha256(version .. "\0" .. table.concat(flags, "\0")):sub(1, 12)
+	local dir = ("%s/gcc-std/%s"):format(CACHE, key)
+	vim.fn.mkdir(dir, "p")
+	local objs, pre, rebuild = {}, {}, false
+	for _, m in ipairs(std_mods) do
+		local obj = dir .. "/" .. m.name .. ".o"
+		local cmi = dir .. "/gcm.cache/" .. m.name .. ".gcm"
+		local built = mtime(obj)
+		rebuild = rebuild or not built or not mtime(cmi) or built < (mtime(m.src) or 0)
+		if rebuild then
+			table.insert(pre, vim.list_extend(vim.list_extend({}, flags), { "-fmodules", "-c", m.src, "-o", obj }))
+		end
+		table.insert(objs, obj)
+	end
+	return dir, objs, pre
 end
 
 --- The module (std or project) a name refers to, for hover: { src, is_std, impls }

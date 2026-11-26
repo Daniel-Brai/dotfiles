@@ -431,24 +431,49 @@ function M.build_cmd(buf, opts)
 	else
 		vim.list_extend(cmd, { "-Wnon-virtual-dtor", "-Woverloaded-virtual", "-D_GLIBCXX_ASSERTIONS" })
 	end
-	-- Modules it imports (std, std.compat, the project's own): their sources go first, in
-	-- dependency order. GCC writes gcm.cache/ in the working directory, so builds run in out_dir.
+	-- Modules it imports: the project's own go first as sources, in dependency order. std and
+	-- std.compat are built once per flag set and linked as objects (that build is ~10s, and
+	-- the standard library doesn't change between runs). GCC reads and writes gcm.cache/ in the
+	-- working directory, so the build runs in that flag set's directory.
+	-- `pre` lists the commands to run before `cmd` (empty once std is built).
+	local build_dir, pre, objs = out_dir, {}, {}
 	if not is_c then
+		local cc_modules = require("core.cc_modules")
 		local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-		vim.list_extend(cmd, require("core.cc_modules").gcc_args(lines, file, M.root(buf)))
+		local args, std_mods = cc_modules.gcc_args(lines, file, M.root(buf), true)
+		if #std_mods > 0 then
+			build_dir, objs, pre = cc_modules.gcc_std(std_mods, cmd)
+			if #args == 0 then
+				args = { "-fmodules" }
+			end
+		end
+		vim.list_extend(cmd, args)
 	end
-	vim.list_extend(cmd, { file, "-o", out })
-	return cmd, out, out_dir
+	vim.list_extend(cmd, { file })
+	vim.list_extend(cmd, objs)
+	vim.list_extend(cmd, { "-o", out })
+	return cmd, out, build_dir, pre
 end
 
-function M.build(run)
+-- `args` go to the program when `run` is set (:CRun a b c)
+function M.build(run, args)
 	if vim.bo.modified then
 		vim.cmd("silent write")
 	end
-	local cmd, out, build_dir = M.build_cmd(0)
+	local cmd, out, build_dir, pre = M.build_cmd(0)
 	local esc = vim.fn.shellescape
-	local compile = "(cd " .. esc(build_dir) .. " && " .. table.concat(vim.tbl_map(esc, cmd), " ") .. ")"
-	local shell = compile .. (run and (" && " .. esc(out)) or (" && echo 'Built " .. out .. "'"))
+	local function line(c)
+		return table.concat(vim.tbl_map(esc, c), " ")
+	end
+	local steps = {}
+	if #pre > 0 then
+		table.insert(steps, "echo 'Building the std module once for these flags (about 10s)...'")
+		vim.list_extend(steps, vim.tbl_map(line, pre))
+	end
+	table.insert(steps, line(cmd))
+	local compile = "(cd " .. esc(build_dir) .. " && " .. table.concat(steps, " && ") .. ")"
+	local program = line(vim.list_extend({ out }, args or {}))
+	local shell = compile .. (run and (" && " .. program) or (" && echo 'Built " .. out .. "'"))
 	local cwd = vim.fn.expand("%:p:h")
 	vim.cmd("botright 15split")
 	vim.cmd("enew")
