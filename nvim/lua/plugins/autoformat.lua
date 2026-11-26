@@ -53,12 +53,17 @@ return {
 				command = "bundle",
 				args = { "exec", "erb-format", "--stdin" },
 			},
-			-- Uses the project's .clang-format when there is one, this style otherwise
+			-- Uses the project's .clang-format when there is one, clang-format.yaml in this
+			-- config otherwise. (--fallback-style only takes a style name like LLVM, not
+			-- inline settings: clang-format refuses those and nothing gets formatted.)
 			["clang-format"] = {
-				prepend_args = {
-					"--style=file",
-					"--fallback-style={BasedOnStyle: LLVM, IndentWidth: 4, ColumnLimit: 100, AllowShortFunctionsOnASingleLine: Empty, PointerAlignment: Left}",
-				},
+				prepend_args = function(_, ctx)
+					local own = vim.fs.find({ ".clang-format", "_clang-format" }, { upward = true, path = ctx.dirname })[1]
+					if own then
+						return { "--style=file" }
+					end
+					return { "--style=file:" .. vim.fn.stdpath("config") .. "/clang-format.yaml" }
+				end,
 			},
 			mix = {
 				command = "mix",
